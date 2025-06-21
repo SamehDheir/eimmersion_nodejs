@@ -12,7 +12,13 @@ const upload = require("../middlewares/uploadMiddleware");
 
 router.post("/", authMiddleware, adminMiddleware,upload.single("image"), createCategory);
 router.get("/", getCategories);
-router.put("/:id", authMiddleware, adminMiddleware, updateCategory);
+router.put(
+  "/:id",
+  authMiddleware,
+  adminMiddleware,
+  upload.single("image"),
+  updateCategory
+);
 router.delete("/:id", authMiddleware, adminMiddleware, deleteCategory);
 
 module.exports = router;

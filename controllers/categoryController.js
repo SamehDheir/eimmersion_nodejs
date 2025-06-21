@@ -32,17 +32,17 @@ exports.getCategories = async (req, res) => {
 exports.updateCategory = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, image } = req.body;
+    const { name } = req.body;
+    const image = req.file?.path;
 
     const category = await Category.findById(id);
     if (!category)
       return res.status(404).json({ message: "Category not found" });
 
     category.name = name || category.name;
-    category.image = image || category.image;
+    if (image) category.image = image;
 
     await category.save();
-
     res.json(category);
   } catch (err) {
     res.status(500).json({ message: err.message });

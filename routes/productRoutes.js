@@ -12,7 +12,7 @@ const upload = require("../middlewares/uploadMiddleware");
 
 router.post("/", authMiddleware, adminMiddleware, upload.single("image"), createProduct);
 router.get("/", getAllProducts);
-router.put("/:id", authMiddleware, adminMiddleware, updateProduct);
+router.put("/:id", authMiddleware, adminMiddleware,upload.single("image"), updateProduct);
 router.delete("/:id", authMiddleware, adminMiddleware, deleteProduct);
 
 module.exports = router;
