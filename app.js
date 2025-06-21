@@ -8,6 +8,7 @@ const categoryRoutes = require("./routes/categoryRoutes");
 const productRoutes = require("./routes/productRoutes");
 const cartRoutes = require("./routes/cartRoutes");
 const orderRoutes = require("./routes/orderRoutes");
+const paymentRoutes = require("./routes/paymentRoutes");
 
 dotenv.config();
 
@@ -23,6 +24,42 @@ app.use("/api/categories", categoryRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api/payment", paymentRoutes);
+app.post(
+  "/api/webhook",
+  express.raw({ type: "application/json" }),
+  async (req, res) => {
+    const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+    const sig = req.headers["stripe-signature"];
+    let event;
+
+    try {
+      event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+    } catch (err) {
+      return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
+
+    if (event.type === "checkout.session.completed") {
+      const session = event.data.object;
+      const orderId = session.metadata.orderId;
+
+      const order = await Order.findById(orderId);
+      if (order) {
+        order.paymentStatus = "Paid";
+        order.paymentInfo = {
+          method: "Stripe",
+          transactionId: session.payment_intent,
+          paidAt: new Date(),
+        };
+        await order.save();
+      }
+    }
+
+    res.status(200).send("Received");
+  }
+);
+
 
 // Connect to DB and start server
 const PORT = process.env.PORT || 5000;
