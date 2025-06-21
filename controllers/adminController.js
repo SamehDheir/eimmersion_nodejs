@@ -1,7 +1,7 @@
 const Category = require("../models/categoryModel");
 const Product = require("../models/productModel");
 const Order = require("../models/orderModel");
-
+const PromoCode = require("../models/PromoCodeModel");
 
 // ------------ Categories ------------
 
@@ -68,3 +68,41 @@ exports.updateOrderStatus = async (req, res) => {
   res.json(order);
 };
 
+// ------------ Promo Code ------------
+
+exports.getAllPromoCodes = async (req, res) => {
+  const codes = await PromoCode.find();
+  res.json(codes);
+};
+
+exports.createPromoCode = async (req, res) => {
+  const { code, discountType, discountValue, expiresAt, usageLimit } = req.body;
+  try {
+    const newCode = await PromoCode.create({
+      code,
+      discountType,
+      discountValue,
+      expiresAt,
+      usageLimit,
+    });
+    res.status(201).json(newCode);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+};
+
+exports.updatePromoCode = async (req, res) => {
+  try {
+    const updated = await PromoCode.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+    });
+    res.json(updated);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+};
+
+exports.deletePromoCode = async (req, res) => {
+  await PromoCode.findByIdAndDelete(req.params.id);
+  res.json({ message: "Promo code deleted" });
+};
